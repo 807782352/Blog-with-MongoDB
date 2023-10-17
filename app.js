@@ -33,7 +33,8 @@ const Post = mongoose.model("post", postSchema);
 async function insertPost(title, content) {
   try {
     await new Post({
-      title, content
+      title,
+      content,
     }).save();
     console.log("Successfully insert a post!");
   } catch (error) {
@@ -41,7 +42,7 @@ async function insertPost(title, content) {
   }
 }
 
-async function showAllPosts(){
+async function showAllPosts() {
   try {
     const posts = await Post.find({});
     console.log("Successfully show all posts!");
@@ -51,14 +52,10 @@ async function showAllPosts(){
   }
 }
 
-
-
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
-
-
 
 let posts = [];
 
@@ -90,7 +87,7 @@ app.get("/compose", function (req, res) {
 app.post("/compose", async function (req, res) {
   const title = req.body.postTitle;
   const content = req.body.postBody;
-  
+
   await insertPost(title, content);
 
   res.redirect("/");
@@ -99,16 +96,31 @@ app.post("/compose", async function (req, res) {
 app.get("/posts/:postName", function (req, res) {
   const requestedTitle = _.lowerCase(req.params.postName);
 
-  posts.forEach(function (post) {
-    const storedTitle = _.lowerCase(post.title);
+  // posts.forEach(function (post) {
+  //   const storedTitle = _.lowerCase(post.title);
 
-    if (storedTitle === requestedTitle) {
-      res.render("post", {
-        title: post.title,
-        content: post.content,
-      });
-    }
+  //   if (storedTitle === requestedTitle) {
+  //     res.render("post", {
+  //       title: post.title,
+  //       content: post.content,
+  //     });
+  //   }
+  // });
+
+  const foundPost = posts.find((post) => {
+    const storedTitle = _.lowerCase(post.title);
+    // console.log(storedTitle, requestedTitle)
+    return storedTitle === requestedTitle;
   });
+
+  if (foundPost) {
+    res.render("post", {
+      title: foundPost.title,
+      content: foundPost.content,
+    });
+  } else {
+    console.error("No such post.");
+  }
 });
 
 app.listen(3000, function () {
