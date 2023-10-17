@@ -41,6 +41,16 @@ async function insertPost(title, content) {
   }
 }
 
+async function showAllPosts(){
+  try {
+    const posts = await Post.find({});
+    console.log("Successfully show all posts!");
+    return posts;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 
 
 app.set("view engine", "ejs");
@@ -52,7 +62,13 @@ app.use(express.static("public"));
 
 let posts = [];
 
-app.get("/", function (req, res) {
+app.get("/", async function (req, res) {
+  try {
+    posts = await showAllPosts();
+  } catch (error) {
+    console.error(log);
+  }
+
   res.render("home", {
     startingContent: homeStartingContent,
     posts: posts,
