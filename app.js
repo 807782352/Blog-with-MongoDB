@@ -15,6 +15,10 @@ const contactContent =
   "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
 const app = express();
+app.set("view engine", "ejs");
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 const MONGO_PATH = "mongodb://127.0.0.1:27017/";
 const COLLECTION = "posts";
@@ -52,10 +56,19 @@ async function showAllPosts() {
   }
 }
 
-app.set("view engine", "ejs");
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
+async function findPostById(postId) {
+  try {
+    const foundPost = await Post.findById(postId);
+    if (foundPost) {
+      console.log("Successfully find the post!");
+    } else {
+      console.log("No such post!");
+    }
+    return foundPost;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 let posts = [];
 
@@ -93,33 +106,52 @@ app.post("/compose", async function (req, res) {
   res.redirect("/");
 });
 
-app.get("/posts/:postName", function (req, res) {
-  const requestedTitle = _.lowerCase(req.params.postName);
+// app.get("/posts/:postName", function (req, res) {
+//   const requestedTitle = _.lowerCase(req.params.postName);
 
-  // posts.forEach(function (post) {
-  //   const storedTitle = _.lowerCase(post.title);
+//   // posts.forEach(function (post) {
+//   //   const storedTitle = _.lowerCase(post.title);
 
-  //   if (storedTitle === requestedTitle) {
-  //     res.render("post", {
-  //       title: post.title,
-  //       content: post.content,
-  //     });
-  //   }
-  // });
+//   //   if (storedTitle === requestedTitle) {
+//   //     res.render("post", {
+//   //       title: post.title,
+//   //       content: post.content,
+//   //     });
+//   //   }
+//   // });
 
-  const foundPost = posts.find((post) => {
-    const storedTitle = _.lowerCase(post.title);
-    // console.log(storedTitle, requestedTitle)
-    return storedTitle === requestedTitle;
-  });
+//   const foundPost = posts.find((post) => {
+//     const storedTitle = _.lowerCase(post.title);
+//     // console.log(storedTitle, requestedTitle)
+//     return storedTitle === requestedTitle;
+//   });
 
+//   if (foundPost) {
+//     res.render("post", {
+//       title: foundPost.title,
+//       content: foundPost.content,
+//     });
+//   } else {
+//     console.error("No such post.");
+//   }
+// });
+
+app.get("/posts/:postId", async function (req, res) {
+  const postId = req.params.postId;
+
+  const foundPost = await findPostById(postId);
+  
   if (foundPost) {
     res.render("post", {
       title: foundPost.title,
       content: foundPost.content,
     });
   } else {
-    console.error("No such post.");
+    console.log("No such post");
+    res.render("post", {
+      title: "Error",
+      content: "Error",
+    });
   }
 });
 
